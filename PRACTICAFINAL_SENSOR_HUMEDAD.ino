@@ -72,7 +72,7 @@ void apagarRiegoAutomatizado() {
 uint8_t getSoilmoisture() {
   // Obtiene la lectura del sensor y retorna el porcentaje.
   sensor = analogRead(sensorpin);
-  uint8_t moisturePercentage = map(sensor, 1016,332 , 0, 100);
+  uint8_t moisturePercentage = map(sensor, 1016, 332, 0, 100);
   return moisturePercentage;
 };
 
@@ -227,6 +227,8 @@ void loop() {
 
 
     if (riegoAutom == false) {
+      digitalWrite(pinRelay, LOW);
+
       valorActual = getSoilmoisture();
       if (valorActual != valorPasado) {
         ledIndicator(valorActual);
