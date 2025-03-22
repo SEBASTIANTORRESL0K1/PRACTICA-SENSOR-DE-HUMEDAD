@@ -1,5 +1,5 @@
 # PRÁCTICA SENSOR DE HUMEDAD
-
+**<img src="https://portal.ucol.mx/content/micrositios/188/image/Escudo2021/Dos_lineas_Izq/UdeC_2L%20izq_Blanco.png">**
 **Universidad de Colima**  
 **Facultad de Telemática**  
 **Ingeniería de Software**  
