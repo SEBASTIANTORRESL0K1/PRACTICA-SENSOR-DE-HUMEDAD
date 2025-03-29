@@ -2,11 +2,12 @@
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 const int sensorpin = A0;
-const int pinRed = 3;
+const int pinRed = 10;
 const int pinGreen = 6;
 const int pinBlue = 5;
 const int btn = 7;
 const int pinRelay = 8;
+const int buzzer2 = 2;
 int sensor;
 int mapeo;
 bool relay;
@@ -40,9 +41,9 @@ byte rayo[] = {
 
 void encenderRiegoAutomatizado() {
   playSong(1);
-  analogWrite(pinRed, 76);
-  analogWrite(pinGreen, 40);
-  analogWrite(pinBlue, 130);
+  analogWrite(pinRed, 120);
+  analogWrite(pinGreen, 0);
+  analogWrite(pinBlue, 255);
   lcd.clear();
   Serial.println("Modo Automatico encendido");
   Serial.print("Valor ");
@@ -72,7 +73,7 @@ void apagarRiegoAutomatizado() {
 uint8_t getSoilmoisture() {
   // Obtiene la lectura del sensor y retorna el porcentaje.
   sensor = analogRead(sensorpin);
-  uint8_t moisturePercentage = map(sensor, 1016, 332, 0, 100);
+  uint8_t moisturePercentage = map(sensor, 1023, 41, 0, 100);
   return moisturePercentage;
 };
 
@@ -85,19 +86,19 @@ void ledIndicator(uint8_t data) {
     analogWrite(pinGreen, 0);
     analogWrite(pinBlue, 0);
   }
-  if (data > 24 && data < 50) {
+  if (data > 26 && data < 50) {
     //amarillo
-    analogWrite(pinRed, 255);
+    analogWrite(pinRed, 200);
     analogWrite(pinGreen, 255);
     analogWrite(pinBlue, 0);
   }
-  if (data > 49 && data < 75) {
+  if (data > 51 && data < 75) {
     //blanco
-    analogWrite(pinRed, 255);
+    analogWrite(pinRed, 200);
     analogWrite(pinGreen, 255);
     analogWrite(pinBlue, 255);
   }
-  if (data > 74 && data < 100) {
+  if (data > 76 && data < 100) {
     //azul
     analogWrite(pinRed, 0);
     analogWrite(pinGreen, 0);
@@ -132,6 +133,8 @@ void playSong(uint8_t song) {
       delay(500);
       tone(buzzerPin, 330, 500);  // Mi (E4) durante 500 ms
       delay(500);
+      noTone(buzzerPin);
+
       break;
 
     case 2:
@@ -142,20 +145,21 @@ void playSong(uint8_t song) {
       delay(500);
       tone(buzzerPin, 494, 500);  // Si (B4) durante 500 ms
       delay(500);
+      noTone(buzzerPin);
       break;
 
     case 3:
       // Reproducir la tercera melodía
-      tone(buzzerPin, 523, 500);  // Do (C5) durante 500 ms
+      //digitalWrite(buzzer2, HIGH);
+      //delay(1500);
+     //digitalWrite(buzzer2, LOW);
+      tone(buzzerPin, 400, 500);  // Sol (G4) durante 500 ms
       delay(500);
-      tone(buzzerPin, 587, 500);  // Re (D5) durante 500 ms
+      tone(buzzerPin, 400, 500);  // La (A4) durante 500 ms
       delay(500);
-      tone(buzzerPin, 659, 500);  // Mi (E5) durante 500 ms
+      tone(buzzerPin, 400, 500);  // Si (B4) durante 500 ms
       delay(500);
-      break;
-
-    default:
-      // Si el número de canción no es válido, no hacer nada
+      noTone(buzzerPin);
       break;
   }
 }
@@ -163,24 +167,25 @@ void drainWater(bool humidityFlag) {
 
   //Activa la bomba cuando la humedad está por debajo del 80%.
   if (humidityFlag == false) {
-    digitalWrite(pinRelay, HIGH);
+    digitalWrite(pinRelay, LOW);
     Serial.println(valorActual);
     playSong(3);
 
   } else {
-    digitalWrite(pinRelay, LOW);
+    digitalWrite(pinRelay, HIGH);
+    digitalWrite(buzzer2,HIGH);
   }
 }
 void showValue(uint8_t data) {
   Serial.print("Valor Analogico: ");
-  Serial.println(map(data, 0, 100, 1016, 332));
+  Serial.println(map(data, 0, 100, 1023, 41));
   Serial.print("Valor Digital: ");
   Serial.print(data);
   Serial.println("%");
   lcd.clear();
   lcd.setCursor(0, 1);
   lcd.print("Analogico: ");
-  lcd.print(map(data, 0, 100, 1016, 332));
+  lcd.print(map(data, 0, 100, 1023, 41));
   lcd.setCursor(0, 0);
   lcd.print(data);
   lcd.print("%");
@@ -201,6 +206,7 @@ void setup() {
   pinMode(btn, INPUT_PULLUP);
   pinMode(buzzerPin, OUTPUT);
   pinMode(pinRelay, OUTPUT);
+  pinMode(buzzer2,OUTPUT);
   relay = false;
   riegoAutom = false;
   valorPasado = 0;
@@ -217,6 +223,7 @@ void loop() {
       apagarRiegoAutomatizado();
       valorActual = getSoilmoisture();
 
+      lcd.init();  //mamada de jp
 
       ledIndicator(valorActual);
       showValue(valorActual);
@@ -227,7 +234,7 @@ void loop() {
 
 
     if (riegoAutom == false) {
-      digitalWrite(pinRelay, LOW);
+      digitalWrite(pinRelay, HIGH);
 
       valorActual = getSoilmoisture();
       if (valorActual != valorPasado) {
@@ -237,7 +244,9 @@ void loop() {
       }
     } else {
       drainWater(checkHumidity(getSoilmoisture()));
-
+      analogWrite(pinRed, 76);
+      analogWrite(pinGreen, 40);
+      analogWrite(pinBlue, 130);
       //revisar humedad
     }
   }
